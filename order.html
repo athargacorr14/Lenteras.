@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12251c">
+  <title>Pesan — Lenteras Coffee & Intimate Wedding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="responsive.css">
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <a class="app-back" href="index.html" aria-label="Kembali ke beranda">←</a>
+    <a class="brand" href="index.html"><span class="brand-mark">L<span>.</span></span><span class="brand-copy"><strong>LENTERAS</strong><small>PESAN DARI MEJA</small></span></a>
+    <span class="table-badge" id="tableBadge" hidden></span>
+  </header>
+
+  <main class="order-layout">
+    <section class="order-menu">
+      <div class="order-hero">
+        <p class="eyebrow">ORDER &amp; PAY</p>
+        <h1>Pilih menu, bayar dengan QRIS.</h1>
+        <p id="orderHint">Pilih menu favoritmu, kami siapkan dan antar ke meja.</p>
+      </div>
+      <div id="menuBrowser"></div>
+    </section>
+
+    <aside class="cart-panel" id="cartPanel" aria-label="Keranjang pesanan">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="panel-head"><h2>Pesanan kamu</h2><button type="button" class="panel-close" id="panelClose" aria-label="Tutup keranjang">✕</button></div>
+      <form id="orderForm" novalidate>
+        <div id="cartLines" class="cart-lines"></div>
+
+        <fieldset class="seg" id="typeSeg">
+          <legend>Jenis pesanan</legend>
+          <label><input type="radio" name="type" value="Dine-in" checked><span>Makan di tempat</span></label>
+          <label><input type="radio" name="type" value="Take away"><span>Bawa pulang</span></label>
+        </fieldset>
+        <div id="tableField" class="field">
+          <label for="tableNo">Nomor meja</label>
+          <select id="tableNo" name="table"></select>
+        </div>
+        <div class="field"><label for="custName">Nama</label><input id="custName" name="name" type="text" placeholder="Nama untuk pesanan" autocomplete="name" required></div>
+        <div class="field"><label for="custPhone">No. WhatsApp <em>(opsional)</em></label><input id="custPhone" name="phone" type="tel" inputmode="tel" placeholder="08xxxxxxxxxx" autocomplete="tel"></div>
+        <div class="field"><label for="custNote">Catatan</label><textarea id="custNote" name="note" rows="2" placeholder="Mis. less sugar, tanpa es, pedas level 2"></textarea></div>
+
+        <fieldset class="seg" id="paySeg">
+          <legend>Pembayaran</legend>
+          <label><input type="radio" name="pay" value="QRIS" checked><span>QRIS</span></label>
+          <label><input type="radio" name="pay" value="Kasir"><span>Bayar di kasir</span></label>
+        </fieldset>
+
+        <div class="panel-foot">
+        <div class="total-row"><span>Total</span><strong id="cartTotal">Rp 0</strong></div>
+        <p class="form-error" id="formError" role="alert" hidden></p>
+        <button class="btn btn-gold" type="submit" id="submitBtn">Pesan sekarang</button>
+        <p class="fine">Harga sudah sesuai menu Lenteras. Pesanan dikonfirmasi kasir setelah pembayaran.</p>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+  <button type="button" class="cart-bar" id="cartBar" hidden>
+    <span class="cart-bar-count" id="cartBarCount">0</span>
+    <span>Lihat pesanan</span>
+    <strong id="cartBarTotal">Rp 0</strong>
+  </button>
+  <div class="scrim" id="scrim"></div>
+
+  <!-- Layar setelah pesanan dibuat -->
+  <div class="done-view" id="doneView" hidden>
+    <div class="done-card">
+      <p class="eyebrow" id="doneKicker">PESANAN DITERIMA</p>
+      <h2 id="doneTitle">Terima kasih!</h2>
+      <div class="order-code"><small>KODE PESANAN</small><strong id="doneCode">—</strong></div>
+      <p class="done-meta" id="doneMeta"></p>
+      <div class="status-pill" id="doneStatus"></div>
+      <div id="payBox" class="pay-box" hidden>
+        <p class="pay-title">Scan QRIS untuk membayar</p>
+        <div class="qris-frame" id="qrisFrame"></div>
+        <p class="pay-amount" id="payAmount"></p>
+        <small id="qrisName"></small>
+        <button type="button" class="btn btn-gold" id="paidBtn">Saya sudah bayar</button>
+      </div>
+      <details class="done-items"><summary>Rincian pesanan</summary><div id="doneItems"></div></details>
+      <div class="done-actions">
+        <a class="btn btn-outline" id="waBtn" href="#" target="_blank" rel="noopener" hidden>Kirim ke WhatsApp kasir</a>
+        <button type="button" class="btn btn-ghost" id="newOrderBtn">Pesan lagi</button>
+      </div>
+      <p class="fine" id="doneNote"></p>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="core.js"></script>
+  <script src="order.js"></script>
+</body>
+</html>

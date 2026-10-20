@@ -1,0 +1,116 @@
+
+/* ================= Responsif lanjutan ================= */
+body { overflow-x: clip; }
+@media (min-width: 1500px) {
+  .hero { min-height: 780px; }
+  .hero h1 { font-size: 84px; }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .main-nav { gap: 16px; font-size: 13px; }
+  .brand-copy small { display: none; }
+  .hero h1 { font-size: clamp(40px, 6vw, 60px); }
+  .contact-card { padding: 36px; gap: 28px; }
+}
+@media (max-width: 760px) {
+  .announcement { flex-wrap: nowrap; gap: 8px; padding: 7px 12px; font-size: 12px; }
+  .announcement span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .announcement a { white-space: nowrap; flex-shrink: 0; }
+  .hero { padding: 48px 6% 44px; }
+  .hero::after { background: linear-gradient(180deg, rgba(10,22,15,.55) 0%, rgba(10,22,15,.72) 45%, rgba(10,22,15,.92) 100%); }
+  .hero h1 { font-size: clamp(38px, 11.5vw, 52px); }
+  .hero-description { font-size: 15px; margin: 18px 0 24px; }
+  .hero-actions { gap: 10px; }
+  .hero-actions .btn { flex: 1 1 100%; }
+  .hero-facts { gap: 18px 24px; margin-top: 28px; padding-top: 20px; }
+  .marquee-track span { font-size: 18px; padding: 0 18px; }
+  .section-head { margin-bottom: 30px; }
+  .section-head h2 { font-size: clamp(28px, 8vw, 36px); }
+
+  /* Langkah pesan: baris ringkas */
+  .steps { gap: 12px; }
+  .steps li { display: grid; grid-template-columns: 44px 1fr; column-gap: 16px; padding: 18px; align-items: start; }
+  .steps li .step-no { grid-row: span 2; margin: 0; }
+  .steps h3 { font-size: 19px; margin: 0 0 2px; }
+  .steps p { font-size: 14px; }
+
+  /* Menu favorit: geser horizontal */
+  .fav-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; margin: 0 -6%; padding: 4px 6% 14px; scrollbar-width: none; }
+  .fav-grid::-webkit-scrollbar { display: none; }
+  .fav-card { flex: 0 0 72%; scroll-snap-align: center; }
+  .fav-img { aspect-ratio: 1 / 1; }
+  .cat-strip { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; margin: 24px -6% 0; padding: 0 6% 6px; scrollbar-width: none; }
+  .cat-strip::-webkit-scrollbar { display: none; }
+  .cat-strip a { flex-shrink: 0; }
+  .center-action { margin-top: 28px; }
+  .center-action .btn { width: 100%; }
+
+  .pkg-tile { padding: 22px; }
+  .book-flow .btn { width: 100%; justify-self: stretch; }
+  .gallery-grid { grid-template-rows: 200px 150px; }
+  .testi-track { margin: 0 -6%; padding: 6px 6% 14px; scroll-padding-left: 6%; }
+  .testi-card { padding: 22px; }
+  .testi-card blockquote { font-size: 17px; }
+  .review-form { padding: 22px 18px; margin-top: 32px; }
+  .contact-section { padding-top: 20px; }
+  .contact-card { padding: 28px 22px; border-radius: 18px; }
+  .contact-actions .btn { width: 100%; }
+  .footer-links { gap: 14px 22px; }
+  .footer-bottom { flex-direction: column; gap: 8px; }
+}
+
+/* ---- Halaman aplikasi ---- */
+@media (max-width: 960px) {
+  .order-hero { padding-top: 20px; }
+  .mb-chips { margin: 0 -4%; padding-left: 4%; padding-right: 4%; }
+  .cart-panel { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .cart-bar { bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
+}
+@media (min-width: 561px) and (max-width: 960px) {
+  .order-layout, .booking-layout { padding-left: 5%; padding-right: 5%; }
+  .cart-panel { left: 50%; right: auto; width: min(560px, 100%); transform: translate(-50%, 105%); }
+  .cart-panel.open { transform: translate(-50%, 0); }
+}
+@media (max-width: 560px) {
+  .app-header { padding: 0 12px; }
+  .order-hero h1 { font-size: 26px; }
+  .mi { gap: 12px; }
+  .mi-info h4 { font-size: 15px; }
+  .add-btn { min-width: 76px; height: 36px; }
+  .seg span { padding: 12px 6px; font-size: 13px; }
+  .done-card h2 { font-size: 26px; }
+  .qris-frame { width: min(240px, 70vw); height: min(240px, 70vw); }
+  .field input, .field select, .field textarea, .mb-search { font-size: 16px; } /* cegah zoom otomatis iOS */
+  .review-form input, .review-form textarea, .gate-card input { font-size: 16px; }
+  .pkg-card b { font-size: 20px; }
+  .booking-layout .sum-panel { padding: 20px 16px; }
+  .track-row { flex-wrap: wrap; }
+  .track-row input { flex-basis: 100%; }
+  .track-row .btn { flex: 1; }
+  .a-card { padding: 14px; }
+  .a-card > footer { flex-direction: column; align-items: stretch; }
+  .a-card > footer .btn-row .btn { flex: 1; }
+  .admin-wrap { padding: 14px 12px 50px; }
+  .qr-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 960px) {
+  .panel-foot { position: sticky; bottom: -22px; margin: 14px -22px -22px; padding: 4px 22px calc(18px + env(safe-area-inset-bottom)); background: #fff; box-shadow: 0 -10px 18px rgba(255,255,255,.95); }
+  .panel-foot .total-row { margin-top: 8px; }
+}
+@media (max-width: 560px) { .cl-sub { display: none; } .cl { grid-template-columns: 1fr auto; } }
+
+.book-bar { display: none; }
+@media (max-width: 960px) {
+  .book-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(14,29,21,.1); }
+  .book-bar small { display: block; font-size: 11px; color: var(--muted); line-height: 1.2; }
+  .book-bar b { font-size: 15px; }
+  .book-bar .btn { min-height: 44px; padding: 10px 20px; }
+  .booking-layout { padding-bottom: 100px; }
+  body:has(.done-view:not([hidden])) .book-bar { display: none; }
+}
+@media (min-width: 761px) and (max-width: 960px) {
+  .steps { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .steps li { padding: 22px 18px; }
+  .pkg-grid { grid-template-columns: 1fr; }
+  .book-flow ol { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+}

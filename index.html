@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#12251c">
+  <meta name="description" content="Lenteras Coffee & Intimate Wedding — pesan menu lewat scan QR, bayar dengan QRIS, dan booking venue untuk acara privat.">
+  <title>Lenteras — Coffee & Intimate Wedding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+  <div class="announcement">
+    <span>Scan QR di meja, pesan, lalu bayar dengan QRIS</span>
+    <a href="order.html">Pesan sekarang →</a>
+  </div>
+
+  <header class="site-header" id="top">
+    <a class="brand" href="#top" aria-label="Lenteras beranda">
+      <span class="brand-mark">L<span>.</span></span>
+      <span class="brand-copy"><strong>LENTERAS</strong><small>COFFEE & INTIMATE WEDDING</small></span>
+    </a>
+    <button class="menu-toggle" aria-label="Buka navigasi" aria-expanded="false"><span></span><span></span></button>
+    <nav class="main-nav" aria-label="Navigasi utama">
+      <a href="#cara-pesan">Cara Pesan</a>
+      <a href="#menu">Menu</a>
+      <a href="#venue">Venue</a>
+      <a href="#gallery">Galeri</a>
+      <a href="#kontak">Lokasi</a>
+      <a class="nav-cta" href="order.html">Pesan Sekarang</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-image" role="img" aria-label="Suasana Lenteras yang hangat"></div>
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow"><span></span> COFFEE · FOOD · INTIMATE WEDDING</p>
+        <h1>Tempat untuk <em>ngopi,</em><br>bercerita, dan<br>merayakan.</h1>
+        <p class="hero-description">Pesan dari meja lewat scan QR, bayar dengan QRIS. Atau rencanakan acara privat dan intimate wedding-mu bersama kami.</p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="order.html">Pesan Menu <span>→</span></a>
+          <a class="btn btn-glass" href="booking.html">Booking Venue</a>
+        </div>
+        <dl class="hero-facts">
+          <div><dt>Pesan</dt><dd>Scan QR meja</dd></div>
+          <div><dt>Bayar</dt><dd>QRIS</dd></div>
+          <div><dt>Acara</dt><dd>Intimate wedding</dd></div>
+        </dl>
+      </div>
+      <div class="hero-badge" aria-hidden="true">
+        <span class="hb-icon">▦</span>
+        <div><b>Scan · Pesan · Bayar</b><small>Langsung dari meja kamu</small></div>
+      </div>
+      <a class="scroll-cue" href="#cara-pesan" aria-label="Scroll ke bawah"><span></span></a>
+    </section>
+
+    <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marqueeTrack"></div></div>
+
+    <section class="how section-pad" id="cara-pesan">
+      <div class="section-head center">
+        <span class="kicker">CARA PESAN</span>
+        <h2>Semudah scan, pilih, bayar.</h2>
+        <p>Tanpa antre di kasir. Cocok untuk makan di tempat maupun pesan online dari mana saja.</p>
+      </div>
+      <ol class="steps">
+        <li><span class="step-no">1</span><h3>Scan QR di meja</h3><p>Arahkan kamera HP ke QR di mejamu. Nomor meja langsung terisi otomatis.</p></li>
+        <li><span class="step-no">2</span><h3>Pilih menu favorit</h3><p>Telusuri minuman, makanan, dan pastry. Tambahkan catatan seperti less sugar.</p></li>
+        <li><span class="step-no">3</span><h3>Bayar dengan QRIS</h3><p>Scan QRIS dari e-wallet atau m-banking. Pesanan disiapkan setelah dikonfirmasi kasir.</p></li>
+      </ol>
+      <div class="center-action">
+        <a class="btn btn-dark" href="order.html">Mulai Pesan dari Website</a>
+      </div>
+    </section>
+
+    <section class="menu-section section-pad" id="menu">
+      <div class="section-head">
+        <span class="kicker">MENU PILIHAN</span>
+        <h2>Favorit yang bikin <em>balik lagi.</em></h2>
+        <p>Sebagian dari menu Lenteras. Lihat dan pesan menu lengkap, dari kopi sampai nasi goreng, di halaman pesan.</p>
+      </div>
+      <div class="fav-grid" id="favGrid"></div>
+      <div class="cat-strip" id="catStrip" aria-label="Kategori menu"></div>
+      <div class="center-action"><a class="btn btn-gold" href="order.html">Lihat Menu Lengkap &amp; Pesan</a></div>
+    </section>
+
+    <section class="venue-section section-pad" id="venue">
+      <div class="section-head">
+        <span class="kicker">VENUE &amp; ACARA PRIVAT</span>
+        <h2>Ruang hangat untuk <em>hari istimewamu.</em></h2>
+        <p>Intimate wedding, lamaran, ulang tahun, atau pertemuan keluarga. Ajukan tanggalnya, kami bantu wujudkan.</p>
+      </div>
+      <div class="pkg-grid" id="pkgGrid"></div>
+      <div class="book-flow">
+        <h3>Bagaimana booking bekerja</h3>
+        <ol>
+          <li><b>Pilih tanggal &amp; tamu</b><span>Tentukan tanggal, waktu, dan perkiraan jumlah tamu.</span></li>
+          <li><b>Pilih paket</b><span>Intimate wedding atau acara privat lainnya.</span></li>
+          <li><b>Tambah menu (opsional)</b><span>Pre-order makanan dan minuman untuk tamumu.</span></li>
+          <li><b>Konfirmasi admin</b><span>Admin memastikan ketersediaan, lalu menghubungi kamu.</span></li>
+        </ol>
+        <a class="btn btn-gold" href="booking.html">Ajukan Reservasi Venue</a>
+      </div>
+    </section>
+
+    <section class="gallery-section section-pad" id="gallery">
+      <div class="section-head">
+        <span class="kicker">SUASANA</span>
+        <h2>Lihat sendiri <em>di Lenteras.</em></h2>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item gallery-tall"><img src="https://images.unsplash.com/photo-1493857671505-72967e2e2760?auto=format&fit=crop&w=1000&q=85" alt="Detail interior kafe" loading="lazy"><span>Detail kecil</span></div>
+        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=85" alt="Dekorasi intimate wedding" loading="lazy"><span>Intimate wedding</span></div>
+        <div class="gallery-item"><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85" alt="Kopi sedang disiapkan" loading="lazy"><span>Dibuat dengan hati</span></div>
+      </div>
+      <p class="disclaimer">Foto adalah referensi visual sementara dan akan diganti foto asli Lenteras.</p>
+    </section>
+
+    <section class="testi-section section-pad" id="testimoni">
+      <div class="section-head center">
+        <span class="kicker">TESTIMONI</span>
+        <h2>Cerita dari <em>mereka yang singgah.</em></h2>
+      </div>
+      <div class="testi" id="testi">
+        <div class="testi-track" id="testiTrack"></div>
+        <div class="testi-nav"><button type="button" id="tPrev" aria-label="Sebelumnya">←</button><div class="testi-dots" id="tDots"></div><button type="button" id="tNext" aria-label="Berikutnya">→</button></div>
+      </div>
+      <p class="disclaimer center" id="testiNote">Testimoni di atas adalah contoh tampilan dan akan diganti ulasan asli pelanggan.</p>
+      <form class="review-form" id="reviewForm">
+        <h3>Sudah pernah ke Lenteras?</h3>
+        <p>Bagikan pengalamanmu. Ulasan tampil di sini setelah disetujui admin.</p>
+        <div class="grid-2r">
+          <input id="rvName" type="text" placeholder="Nama" maxlength="40" required aria-label="Nama">
+          <div class="stars-input" id="rvStars" role="radiogroup" aria-label="Penilaian"></div>
+        </div>
+        <textarea id="rvText" rows="3" maxlength="300" placeholder="Ceritakan pengalamanmu…" required aria-label="Ulasan"></textarea>
+        <button class="btn btn-gold" type="submit">Kirim Testimoni</button>
+      </form>
+    </section>
+
+    <section class="contact-section section-pad" id="kontak">
+      <div class="contact-card">
+        <div>
+          <span class="kicker light">LOKASI</span>
+          <h2>Mampir, <em>kami tunggu.</em></h2>
+          <p class="contact-addr">Jl. Kemang Boulevard, Sukaresmi,<br>Cikarang Selatan</p>
+          <div class="contact-actions">
+            <a class="btn btn-gold" href="https://www.google.com/maps/search/?api=1&query=Lenteras+Coffee+Intimate+Wedding+Jl.+Kemang+Boulevard+Sukaresmi+Cikarang+Selatan" target="_blank" rel="noopener">Buka di Maps</a>
+            <a class="btn btn-glass" href="https://www.instagram.com/lenterascoffee_intimatewedding/" target="_blank" rel="noopener">@lenterascoffee_intimatewedding</a>
+          </div>
+        </div>
+        <div class="contact-cta">
+          <h3>Sedang di Lenteras?</h3>
+          <p>Scan QR di mejamu untuk langsung memesan, atau pesan lewat halaman ini.</p>
+          <a class="btn btn-light" href="order.html">Buka Halaman Pesan</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="#top"><span class="brand-mark">L<span>.</span></span><span class="brand-copy"><strong>LENTERAS</strong><small>COFFEE & INTIMATE WEDDING</small></span></a>
+    <div class="footer-links"><a href="order.html">Pesan</a><a href="booking.html">Booking Venue</a><a href="#menu">Menu</a><a href="https://www.instagram.com/lenterascoffee_intimatewedding/" target="_blank" rel="noopener">Instagram ↗</a><a href="admin.html">Admin</a></div>
+    <div class="footer-bottom"><span>© <span id="year"></span> Lenteras Coffee &amp; Intimate Wedding</span><a href="#top">Kembali ke atas ↑</a></div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="core.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

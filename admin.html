@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin — Lenteras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="responsive.css">
+</head>
+<body class="app-body admin-body">
+  <div class="gate" id="gate">
+    <form class="gate-card" id="gateForm">
+      <span class="brand-mark">L<span>.</span></span>
+      <h1>Admin Lenteras</h1>
+      <label for="pin">PIN admin</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" autofocus>
+      <p class="form-error" id="pinError" hidden>PIN salah.</p>
+      <button class="btn btn-gold" type="submit">Masuk</button>
+    </form>
+  </div>
+
+  <div id="adminApp" hidden>
+    <header class="app-header">
+      <a class="brand" href="index.html"><span class="brand-mark">L<span>.</span></span><span class="brand-copy"><strong>LENTERAS</strong><small>ADMIN &amp; KASIR</small></span></a>
+      <button class="header-link" id="logout" type="button">Keluar</button>
+    </header>
+    <div class="admin-wrap">
+      <div class="demo-banner">Mode demo: data tersimpan di browser ini saja. Untuk menerima pesanan dari HP pelanggan di perangkat kasir, sambungkan database (lihat README).</div>
+      <nav class="admin-tabs" role="tablist">
+        <button class="chip active" data-tab="orders">Pesanan <span class="count" id="cOrders">0</span></button>
+        <button class="chip" data-tab="bookings">Booking <span class="count" id="cBookings">0</span></button>
+        <button class="chip" data-tab="dates">Tanggal penuh</button>
+        <button class="chip" data-tab="reviews">Testimoni <span class="count" id="cReviews">0</span></button>
+        <button class="chip" data-tab="qr">QR Meja</button>
+      </nav>
+
+      <section class="tab" id="tab-orders"><div class="filter-row" id="orderFilter"></div><div id="orderList" class="a-list"></div></section>
+      <section class="tab" id="tab-bookings" hidden><div class="filter-row" id="bookingFilter"></div><div id="bookingList" class="a-list"></div></section>
+      <section class="tab" id="tab-dates" hidden>
+        <form class="a-card" id="blockForm">
+          <h3>Tutup tanggal</h3>
+          <p class="fine">Tanggal yang ditutup akan ditampilkan "tidak tersedia" di halaman booking.</p>
+          <div class="grid-2"><div class="field"><label for="blockDate">Tanggal</label><input id="blockDate" type="date" required></div>
+          <div class="field"><label for="blockReason">Alasan (internal)</label><input id="blockReason" type="text" placeholder="Mis. Booking offline / libur"></div></div>
+          <button class="btn btn-gold" type="submit">Tutup tanggal</button>
+        </form>
+        <div id="blockList" class="a-list"></div>
+      </section>
+      <section class="tab" id="tab-reviews" hidden><div id="reviewList" class="a-list"></div></section>
+      <section class="tab" id="tab-qr" hidden>
+        <div class="a-card">
+          <h3>Generator QR meja</h3>
+          <p class="fine">Cetak QR dan tempel di tiap meja. Pelanggan scan → langsung masuk halaman pesan dengan nomor meja terisi.</p>
+          <div class="field"><label for="baseUrl">Alamat halaman pesan</label><input id="baseUrl" type="url"></div>
+          <p class="fine" id="baseWarn"></p>
+          <div class="grid-2"><div class="field"><label for="qrFrom">Meja dari</label><input id="qrFrom" type="number" min="1" value="1"></div><div class="field"><label for="qrTo">sampai</label><input id="qrTo" type="number" min="1"></div></div>
+          <div class="btn-row"><button class="btn btn-gold" id="qrMake" type="button">Buat QR</button><button class="btn btn-outline" id="qrPrint" type="button">Cetak</button></div>
+        </div>
+        <div class="qr-grid" id="qrGrid"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="data.js"></script>
+  <script src="core.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
