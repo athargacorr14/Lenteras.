@@ -12,19 +12,20 @@
 </head>
 <body class="app-body admin-body">
   <div class="gate" id="gate">
-    <form class="gate-card" id="gateForm">
-      <span class="brand-mark">L<span>.</span></span>
-      <h1>Admin Lenteras</h1>
-      <label for="pin">PIN admin</label>
-      <input id="pin" type="password" inputmode="numeric" autocomplete="off" autofocus>
-      <p class="form-error" id="pinError" hidden>PIN salah.</p>
-      <button class="btn btn-gold" type="submit">Masuk</button>
+    <form class="gate-card" id="gateForm" autocomplete="off">
+      <img class="gate-logo" src="assets/logo.png" alt="Lenteras">
+      <h1>Admin &amp; Kasir</h1>
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" maxlength="64" autocomplete="current-password" autofocus required>
+      <p class="form-error" id="pinError" role="alert" hidden></p>
+      <button class="btn btn-gold" id="gateBtn" type="submit">Masuk</button>
+      <p class="fine" id="gateInfo"></p>
     </form>
   </div>
 
   <div id="adminApp" hidden>
     <header class="app-header">
-      <a class="brand" href="index.html"><span class="brand-mark">L<span>.</span></span><span class="brand-copy"><strong>LENTERAS</strong><small>ADMIN &amp; KASIR</small></span></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logo.png" alt="Lenteras Coffee & Intimate Wedding" width="150" height="61"></a><span class="app-label" id="roleBadge">Admin &amp; kasir</span>
       <button class="header-link" id="logout" type="button">Keluar</button>
     </header>
     <div class="admin-wrap">
@@ -64,7 +65,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="data.js"></script>
   <script src="core.js"></script>
   <script src="admin.js"></script>

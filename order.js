@@ -32,6 +32,9 @@ syncType();
 
 // ----- Menu & keranjang -----
 const browser = createMenuBrowser($('menuBrowser'), cart, onCartChange);
+// Dari beranda: order.html?cat=pastry langsung membuka kategori itu.
+const startCat = params.get('cat');
+if (startCat) document.querySelector(`.mb-chips .chip[data-cat="${startCat}"]`)?.click();
 
 function onCartChange() {
   Store.set('cart', cart);
@@ -70,6 +73,7 @@ const showError = msg => { err.textContent = msg; err.hidden = !msg; };
 form.addEventListener('submit', e => {
   e.preventDefault();
   showError('');
+  Chime.unlock(); Notify.register(); // dari klik pengguna: izin suara & service worker
   if (!Cart.count(cart)) return showError('Pilih minimal satu menu dulu ya.');
   const name = form.elements.name.value.trim();
   if (!name) { form.elements.name.focus(); return showError('Isi nama untuk pesanan kamu.'); }
@@ -92,6 +96,7 @@ form.addEventListener('submit', e => {
     source: lockedTable ? 'QR meja' : 'Website'
   };
   Store.upsert('orders', order);
+  if (Cloud.on) Cloud.createOrder(order).catch(() => toast('Koneksi ke server bermasalah. Beri tahu kasir kode pesananmu.'));
   Store.set('lastOrder', order.code);
   Object.keys(cart).forEach(k => delete cart[k]);
   Store.set('cart', cart);
@@ -114,13 +119,54 @@ function showDone(code) {
     + (order.note ? `<p class="fine">Catatan: ${escapeHTML(order.note)}</p>` : '');
   renderDone(order);
   clearInterval(pollTimer);
-  pollTimer = setInterval(() => { const o = Store.find('orders', code); if (o) renderDone(o); }, 3000);
+  pollTimer = setInterval(() => refresh(code), 3000);
+  refresh(code);
+}
+
+// Ambil status terbaru: dari server (bila tersambung) atau penyimpanan lokal (mode demo).
+let refreshing = false;
+async function refresh(code) {
+  let o = Store.find('orders', code);
+  if (Cloud.on && !refreshing) {
+    refreshing = true;
+    try { const r = await Cloud.trackOrder(code); if (r) o = Store.upsert('orders', { ...(o || {}), ...r }); } catch { /* offline: pakai data lokal */ }
+    refreshing = false;
+  }
+  if (o) renderDone(o);
+}
+
+// ----- Pesanan selesai: bunyi + notifikasi + layar peringatan -----
+const seenStatus = () => Store.get('seenStatus', {});
+let titleBlink;
+function announceReady(order) {
+  const where = order.table ? `Meja ${order.table}` : order.type;
+  $('raText').textContent = `Kode ${order.code} · ${where} · atas nama ${order.name}. Silakan ambil / nikmati pesananmu.`;
+  $('readyAlert').hidden = false;
+  Chime.ring();
+  Notify.show('Pesananmu sudah siap! 🎉', `Kode ${order.code} · ${where}. Silakan ambil pesananmu.`, 'order-' + order.code);
+  clearInterval(titleBlink);
+  const base = document.title; let on = false;
+  titleBlink = setInterval(() => { document.title = (on = !on) ? '🔔 Pesanan siap!' : base; }, 900);
+  $('readyAlert').dataset.base = base;
+}
+function stopAnnounce() {
+  Chime.stop(); clearInterval(titleBlink);
+  if ($('readyAlert').dataset.base) document.title = $('readyAlert').dataset.base;
+  $('readyAlert').hidden = true;
+}
+$('raClose').addEventListener('click', stopAnnounce);
+function onStatus(order) {
+  const seen = seenStatus();
+  if (order.status === 'selesai' && seen[order.code] !== 'selesai') announceReady(order);
+  else if (order.status === 'batal' && seen[order.code] !== 'batal') Notify.show('Pesanan dibatalkan', `Pesanan ${order.code} dibatalkan oleh kasir.`, 'order-' + order.code);
+  if (seen[order.code] !== order.status) { seen[order.code] = order.status; Store.set('seenStatus', seen); }
 }
 
 function renderDone(order) {
+  onStatus(order);
   const waiting = order.status === 'menunggu-bayar';
   const showQR = order.pay === 'QRIS' && waiting;
-  $('doneTitle').textContent = order.status === 'selesai' ? 'Selamat menikmati!' : order.status === 'batal' ? 'Pesanan dibatalkan' : 'Terima kasih!';
+  $('doneTitle').textContent = order.status === 'selesai' ? 'Pesananmu sudah siap!' : order.status === 'batal' ? 'Pesanan dibatalkan' : 'Terima kasih!';
   $('doneStatus').textContent = (order.pay === 'Kasir' && waiting) ? 'Silakan bayar di kasir' : STATUS_LABEL[order.status];
   $('doneStatus').dataset.status = order.status;
   $('payBox').hidden = !showQR;
@@ -153,6 +199,7 @@ $('paidBtn').addEventListener('click', () => {
   o.status = 'menunggu-verifikasi';
   o.paidClaimedAt = new Date().toISOString();
   Store.upsert('orders', o);
+  if (Cloud.on) Cloud.claimPaid(o.code).catch(() => toast('Koneksi bermasalah. Tunjukkan bukti bayar ke kasir.'));
   renderDone(o);
 });
 $('newOrderBtn').addEventListener('click', () => {
@@ -168,3 +215,38 @@ $('newOrderBtn').addEventListener('click', () => {
 const last = Store.find('orders', Store.get('lastOrder', ''));
 if (last && !['selesai', 'batal'].includes(last.status) && Date.now() - new Date(last.createdAt) < 6 * 3600e3) showDone(last.code);
 onCartChange();
+
+// ----- Aktifkan notifikasi (juga Web Push bila server tersambung) -----
+function paintNotif() {
+  const p = Notify.permission(), box = $('notifBox');
+  box.hidden = !Notify.supported();
+  box.dataset.state = p;
+  if (p === 'granted') {
+    $('notifBtn').hidden = true;
+    $('notifHelp').textContent = CONFIG.vapidPublicKey && Cloud.on
+      ? 'Aktif. HP akan berbunyi saat pesananmu selesai, walau halaman ditutup.'
+      : 'Aktif. HP berbunyi saat pesananmu selesai selama halaman ini masih terbuka di browser.';
+  } else if (p === 'denied') {
+    $('notifBtn').hidden = true;
+    $('notifHelp').textContent = 'Notifikasi diblokir di browser. Izinkan lewat pengaturan situs, atau biarkan halaman ini tetap terbuka.';
+  }
+}
+$('notifBtn').addEventListener('click', async () => {
+  Chime.unlock();
+  await Notify.register();
+  const p = await Notify.ask();
+  if (p === 'granted') {
+    Chime.once(); // contoh bunyi
+    try { await Notify.subscribePush(Store.get('lastOrder', '')); } catch { /* push belum dikonfigurasi */ }
+  }
+  paintNotif();
+});
+paintNotif();
+Notify.register();
+
+// Buka kunci suara pada sentuhan pertama di halaman (kebijakan autoplay browser).
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, () => Chime.unlock(), { once: true, passive: true }));
+// Mode demo: admin di tab lain mengubah status -> langsung terdeteksi.
+addEventListener('storage', e => { if (e.key === 'lenteras:orders') { const code = Store.get('lastOrder', ''); const o = code && Store.find('orders', code); if (o) renderDone(o); } });
+// Kembali ke tab: segarkan segera.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { const code = Store.get('lastOrder', ''); if (code) refresh(code); } });

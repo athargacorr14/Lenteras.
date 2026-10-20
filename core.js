@@ -22,12 +22,18 @@ const Store = {
   find(key, code) { return this.get(key, []).find(r => r.code === String(code).trim().toUpperCase()); }
 };
 
+// Indeks acak yang kuat (crypto) — kode pesanan tidak boleh mudah ditebak.
+function secureIndex(n) {
+  try { const a = new Uint32Array(1); const lim = Math.floor(0x100000000 / n) * n; do { crypto.getRandomValues(a); } while (a[0] >= lim); return a[0] % n; }
+  catch { return Math.floor(Math.random() * n); }
+}
+
 function makeCode(prefix, key) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const existing = new Set(Store.get(key, []).map(r => r.code));
   let code;
   do {
-    code = prefix + '-' + Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    code = prefix + '-' + Array.from({ length: 6 }, () => chars[secureIndex(chars.length)]).join('');
   } while (existing.has(code));
   return code;
 }
@@ -131,6 +137,159 @@ function linesText(cart) {
 
 const STATUS_LABEL = {
   'menunggu-bayar': 'Menunggu pembayaran', 'menunggu-verifikasi': 'Menunggu verifikasi kasir', 'diproses': 'Sedang disiapkan',
-  'siap': 'Siap / diantar', 'selesai': 'Selesai', 'batal': 'Dibatalkan',
+  'siap': 'Siap / diantar', 'selesai': 'Selesai — pesanan siap', 'batal': 'Dibatalkan',
   'menunggu': 'Menunggu konfirmasi admin', 'tersedia': 'Tanggal tersedia — dikonfirmasi', 'ditolak': 'Tidak tersedia'
+};
+
+// =====================================================================
+// BUNYI & NOTIFIKASI — dipakai halaman pesan saat status pesanan berubah
+// =====================================================================
+const Chime = {
+  ctx: null, timer: null, stopTimer: null,
+  // Browser hanya mengizinkan suara setelah ada sentuhan/klik. Panggil unlock() dari event pengguna.
+  unlock() {
+    try {
+      this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch { /* tanpa audio */ }
+  },
+  _note(freq, start, dur, vol = .28) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(vol, start + .02);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(g); g.connect(c.destination); o.start(start); o.stop(start + dur + .05);
+  },
+  once() {
+    this.unlock();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + .02;
+    [659.25, 783.99, 1046.5, 783.99, 1046.5].forEach((f, i) => this._note(f, t + i * .17, .45));
+  },
+  // Bunyi berulang sampai dimatikan (atau maksimal `ms`).
+  ring(ms = 60000) {
+    this.stop();
+    this.once();
+    this.timer = setInterval(() => this.once(), 2400);
+    this.stopTimer = setTimeout(() => this.stop(), ms);
+    try { navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 600]); } catch { /* abaikan */ }
+  },
+  stop() {
+    clearInterval(this.timer); clearTimeout(this.stopTimer); this.timer = this.stopTimer = null;
+    try { navigator.vibrate && navigator.vibrate(0); } catch { /* abaikan */ }
+  },
+  get ringing() { return !!this.timer; }
+};
+
+const Notify = {
+  supported: () => 'Notification' in window,
+  permission: () => ('Notification' in window ? Notification.permission : 'denied'),
+  async register() {
+    if (!('serviceWorker' in navigator)) return null;
+    try { return await navigator.serviceWorker.register('sw.js'); } catch { return null; }
+  },
+  async ask() {
+    if (!this.supported()) return 'denied';
+    if (Notification.permission === 'default') { try { await Notification.requestPermission(); } catch { /* abaikan */ } }
+    return Notification.permission;
+  },
+  // Notifikasi sistem (muncul juga saat tab di background / layar HP terkunci).
+  async show(title, body, tag = 'lenteras-order') {
+    if (this.permission() !== 'granted') return false;
+    const opts = { body, tag, renotify: true, requireInteraction: true, vibrate: [300, 150, 300, 150, 600], icon: 'assets/icon-192.png', badge: 'assets/icon-192.png', data: { url: location.pathname + location.search } };
+    try {
+      const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+      if (reg) { await reg.showNotification(title, opts); return true; }
+      new Notification(title, opts); return true;
+    } catch { return false; }
+  },
+  // Web Push: agar notifikasi tetap datang walau halaman/browser ditutup (butuh server push, lihat README).
+  async subscribePush(code) {
+    if (!CONFIG.vapidPublicKey || !('PushManager' in window)) return false;
+    const reg = (await navigator.serviceWorker.getRegistration()) || (await this.register());
+    if (!reg) return false;
+    const key = Uint8Array.from(atob(CONFIG.vapidPublicKey.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+    if (Cloud.on) await Cloud.savePush(code, sub.toJSON());
+    return true;
+  }
+};
+
+// =====================================================================
+// CLOUD (opsional) — Supabase lewat REST. Kosongkan CONFIG.supabaseUrl/supabaseKey untuk mode demo lokal.
+// Pelanggan memakai kunci anon; admin login (email+password) dan memakai token JWT miliknya.
+// =====================================================================
+const Cloud = {
+  get on() { return !!(CONFIG.supabaseUrl && CONFIG.supabaseKey); },
+  jwt() { try { return sessionStorage.getItem('lenteras:jwt'); } catch { return null; } },
+  // ---- sesi staf (sessionStorage: hilang saat tab ditutup) ----
+  setTokens(j) { try { sessionStorage.setItem('lenteras:jwt', j.access_token); if (j.refresh_token) sessionStorage.setItem('lenteras:rt', j.refresh_token); } catch { /* abaikan */ } },
+  clearTokens() { try { sessionStorage.removeItem('lenteras:jwt'); sessionStorage.removeItem('lenteras:rt'); } catch { /* abaikan */ } },
+  role() {
+    try { const p = JSON.parse(atob(this.jwt().split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return (p.app_metadata && p.app_metadata.role) || ''; } catch { return ''; }
+  },
+  async refresh() {
+    let rt = null; try { rt = sessionStorage.getItem('lenteras:rt'); } catch { /* abaikan */ }
+    if (!rt) throw new Error('unauthorized');
+    const res = await fetch(CONFIG.supabaseUrl.replace(/\/$/, '') + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST', headers: { apikey: CONFIG.supabaseKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: rt })
+    });
+    if (!res.ok) throw new Error('unauthorized');
+    this.setTokens(await res.json());
+  },
+  async req(path, { method = 'GET', body, prefer, admin = false, retried = false } = {}) {
+    const res = await fetch(CONFIG.supabaseUrl.replace(/\/$/, '') + path, {
+      method,
+      headers: { apikey: CONFIG.supabaseKey, Authorization: 'Bearer ' + ((admin && this.jwt()) || CONFIG.supabaseKey), 'Content-Type': 'application/json', ...(prefer ? { Prefer: prefer } : {}) },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+    if (res.status === 401 && admin && !retried) {                 // token kedaluwarsa -> perbarui sekali lalu ulangi
+      try { await this.refresh(); } catch { this.clearTokens(); throw new Error('unauthorized'); }
+      return this.req(path, { method, body, prefer, admin, retried: true });
+    }
+    if (res.status === 401 && admin) { this.clearTokens(); throw new Error('unauthorized'); }
+    if (!res.ok) throw new Error(`${method} ${path.split('?')[0]} → ${res.status}`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  },
+  rpc(name, args, admin) { return this.req('/rest/v1/rpc/' + name, { method: 'POST', body: args, admin }); },
+  toRecord(row) { return row ? { ...row.data, code: row.code, status: row.status } : null; },
+  fromRecord(rec) { const { code, status, ...data } = rec; return { code, status, data }; },
+
+  // ----- pelanggan -----
+  createOrder(o) { return this.req('/rest/v1/orders', { method: 'POST', body: this.fromRecord(o), prefer: 'return=minimal' }); },
+  createBooking(b) { return this.req('/rest/v1/bookings', { method: 'POST', body: this.fromRecord(b), prefer: 'return=minimal' }); },
+  createReview(r) { return this.req('/rest/v1/reviews', { method: 'POST', body: this.fromRecord(r), prefer: 'return=minimal' }); },
+  async trackOrder(code) { return this.toRecord(await this.rpc('track_order', { p_code: code })); },
+  async trackBooking(code) { return this.toRecord(await this.rpc('track_booking', { p_code: code })); },
+  claimPaid(code) { return this.rpc('claim_paid', { p_code: code }); },
+  bookedSlots() { return this.rpc('booked_slots', {}); },
+  blockedDates() { return this.req('/rest/v1/blocked_dates?select=date,reason'); },
+  async approvedReviews() { return ((await this.req('/rest/v1/reviews?status=eq.approved&select=code,status,data&order=created_at.desc&limit=12')) || []).map(r => this.toRecord(r)); },
+  savePush(code, sub) { return this.req('/rest/v1/push_subs', { method: 'POST', body: { order_code: code, sub }, prefer: 'return=minimal' }); },
+
+  // ----- admin -----
+  // Mengembalikan peran dari JWT yang diterbitkan server ('admin' | 'kasir'); selain itu ditolak.
+  async login(email, pin) {
+    const res = await fetch(CONFIG.supabaseUrl.replace(/\/$/, '') + '/auth/v1/token?grant_type=password', {
+      method: 'POST', headers: { apikey: CONFIG.supabaseKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pin })
+    });
+    if (!res.ok) throw new Error('login gagal');
+    this.setTokens(await res.json());
+    const role = this.role();
+    if (role !== 'admin' && role !== 'kasir') { await this.logout(); throw new Error('akun ini bukan staf'); }
+    return role;
+  },
+  async logout() {
+    const jwt = this.jwt();
+    this.clearTokens();
+    if (jwt) { try { await fetch(CONFIG.supabaseUrl.replace(/\/$/, '') + '/auth/v1/logout', { method: 'POST', headers: { apikey: CONFIG.supabaseKey, Authorization: 'Bearer ' + jwt } }); } catch { /* abaikan */ } }
+  },
+  async list(table) { return ((await this.req(`/rest/v1/${table}?select=*&order=created_at.desc&limit=300`, { admin: true })) || []).map(r => this.toRecord(r)); },
+  patch(table, rec) { const { code, status, data } = this.fromRecord(rec); return this.req(`/rest/v1/${table}?code=eq.${encodeURIComponent(code)}`, { method: 'PATCH', body: { status, data, updated_at: new Date().toISOString() }, prefer: 'return=minimal', admin: true }); },
+  remove(table, code) { return this.req(`/rest/v1/${table}?code=eq.${encodeURIComponent(code)}`, { method: 'DELETE', admin: true }); },
+  async listBlocked() { return (await this.req('/rest/v1/blocked_dates?select=date,reason&order=date.asc', { admin: true })) || []; },
+  addBlocked(d) { return this.req('/rest/v1/blocked_dates', { method: 'POST', body: d, prefer: 'resolution=merge-duplicates,return=minimal', admin: true }); },
+  removeBlocked(date) { return this.req(`/rest/v1/blocked_dates?date=eq.${encodeURIComponent(date)}`, { method: 'DELETE', admin: true }); }
 };

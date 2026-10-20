@@ -11,8 +11,17 @@ const CONFIG = {
   // Gambar QRIS resmi Lenteras (simpan di folder assets/). Jika file belum ada, tampil placeholder.
   qrisImage: 'assets/qris.png',
   qrisName: 'Lenteras Coffee & Intimate Wedding',
-  // PIN halaman admin (demo saja — bukan pengamanan sungguhan, lihat README).
-  adminPin: '2468',
+  // ---- Login staf: SATU PIN untuk admin & kasir ----
+  // Mode server: satu akun Supabase Auth (peran admin); PIN = password akun itu. Isi email akunnya di sini.
+  // (Gunakan email yang kamu kendalikan. Email tampil di kode situs, PIN tidak.)
+  staffEmail: '',
+  // Mode demo SAJA (tanpa server): PIN dicek di browser. WAJIB diganti sebelum dipakai sungguhan.
+  demoPin: 'admin123',
+  adminIdleMinutes: 240,      // keluar otomatis bila tidak ada aktivitas
+  // ---- Sistem pesanan online (opsional). Kosong = mode demo (data hanya di browser). Lihat README / folder supabase/ ----
+  supabaseUrl: '',      // contoh: https://abcdxyz.supabase.co
+  supabaseKey: '',      // kunci "anon public" dari Project Settings > API
+  vapidPublicKey: '',   // kunci publik Web Push (agar notifikasi tetap datang saat halaman/browser ditutup)
   tableCount: 20,
   // Jam acara yang bisa dipilih saat booking venue
   timeSlots: ['09.00 – 13.00', '13.00 – 17.00', '17.00 – 21.00', 'Sepanjang hari (konsultasi)']
@@ -189,7 +198,7 @@ const MENU_IMAGES = {
 const MENU = RAW_MENU.map(([cat, name, price, desc], i) => ({ id: 'm' + (i + 1), cat, name, price, desc: desc || '', img: MENU_IMAGES[name] || '' }));
 
 // Menu pilihan untuk bagian "House Favourites" di landing page
-const FAVOURITES = ['Lotus Latte', 'Strawberry Cream Cheese', 'Nasi Goreng Lenteras', 'Tropical Sunset', 'Sate Taichan', 'Almond Croissants'];
+const FAVOURITES = ['Lotus Latte', 'Strawberry Cream Cheese', 'Nasi Goreng Lenteras', 'Avocado Coffee Float', 'Sate Taichan', 'Butter Croissant'];
 
 const VENUE_PACKAGES = [
   {
@@ -207,6 +216,35 @@ const VENUE_PACKAGES = [
     desc: 'Ulang tahun, bridal shower, reuni, atau perayaan kecil yang ingin dibuat berkesan.',
     points: ['Dekorasi sederhana sesuai tema', 'Pre-order menu untuk seluruh tamu', 'Konfirmasi cepat via admin']
   }
+];
+
+
+// Galeri "Suasana Lenteras": klik untuk melihat foto detail. Foto masih referensi (Unsplash); ganti dengan foto asli Lenteras.
+const UNS = id => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1400&q=80`;
+const GALLERY = [
+  { id: 'wedding', tall: true, title: 'Intimate Wedding', tag: 'Acara & dekorasi', cta: { label: 'Ajukan Booking Venue', href: 'booking.html?paket=intimate-wedding' },
+    desc: 'Detail suasana untuk pernikahan intimate: lorong akad, tata meja, bunga, dan momen-momen kecil yang membuat hari istimewamu terasa personal. Konsep dan dekorasi dikonsultasikan bersama tim Lenteras.',
+    photos: [
+      { src: UNS('1469371670807-013ccf25f16a'), cap: 'Lorong & area akad' },
+      { src: UNS('1519225421980-715cb0215aed'), cap: 'Tata meja panjang untuk keluarga' },
+      { src: UNS('1511795409834-ef04bbd61622'), cap: 'Detail meja & rangkaian bunga' },
+      { src: UNS('1465495976277-4387d4b0b4c6'), cap: 'Cincin & buket pengantin' },
+      { src: UNS('1519741497674-611481863552'), cap: 'Buket & suasana hangat' },
+      { src: UNS('1507504031003-b417219a0fde'), cap: 'Detail dekorasi: Mr & Mrs' },
+      { src: UNS('1519167758481-83f550bb49b3'), cap: 'Ruang resepsi' }
+    ] },
+  { id: 'detail', title: 'Detail kecil', tag: 'Interior', cta: { label: 'Pesan Menu', href: 'order.html' },
+    desc: 'Sudut-sudut kecil yang bikin betah berlama-lama.',
+    photos: [{ src: UNS('1493857671505-72967e2e2760'), cap: 'Sudut interior' }, { src: UNS('1445116572660-236099ec97a0'), cap: 'Ruang duduk yang hangat' }] },
+  { id: 'coffee', title: 'Dibuat dengan hati', tag: 'Kopi', cta: { label: 'Pesan Menu', href: 'order.html' },
+    desc: 'Setiap cangkir disiapkan dengan teliti oleh barista kami.',
+    photos: [{ src: UNS('1495474472287-4d71bcdd2085'), cap: 'Latte art' }, { src: UNS('1461023058943-07fcbe16d735'), cap: 'Iced latte' }, { src: UNS('1517701604599-bb29b565090c'), cap: 'Cappuccino hangat' }] },
+  { id: 'company', title: 'Good company', tag: 'Suasana', cta: { label: 'Pesan Menu', href: 'order.html' },
+    desc: 'Tempat bertemu, bercerita, dan menghabiskan waktu bersama orang terdekat.',
+    photos: [{ src: UNS('1501339847302-ac426a4a7cbb'), cap: 'Suasana kafe' }, { src: UNS('1442512595331-e89e73853f31'), cap: 'Di balik meja bar' }] },
+  { id: 'oven', title: 'Fresh from the oven', tag: 'Pastry', cta: { label: 'Pesan Menu', href: 'order.html' },
+    desc: 'Pastry dan croissant hangat setiap hari.',
+    photos: [{ src: UNS('1555507036-ab1f4038808a'), cap: 'Croissant segar' }, { src: UNS('1525351484163-7529414344d8'), cap: 'Brunch toast' }] }
 ];
 
 // Testimoni CONTOH (tampil sampai ada ulasan asli yang disetujui admin). Ganti/hapus dengan ulasan nyata pelanggan.

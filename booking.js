@@ -27,7 +27,8 @@ function availability(date, slot) {
   if (!date) return { state: 'idle', text: 'Pilih tanggal untuk melihat info ketersediaan awal.' };
   const blocked = Store.get('blockedDates', []).find(b => b.date === date);
   if (blocked) return { state: 'no', text: 'Tanggal ini tidak tersedia. Silakan pilih tanggal lain.' };
-  const taken = Store.get('bookings', []).some(b => b.date === date && b.status === 'tersedia' && (b.slot === slot || b.slot === CONFIG.timeSlots[3] || slot === CONFIG.timeSlots[3]));
+  const clash = b => b.date === date && (b.slot === slot || b.slot === CONFIG.timeSlots[3] || slot === CONFIG.timeSlots[3]);
+  const taken = Store.get('bookings', []).some(b => b.status === 'tersedia' && clash(b)) || Store.get('bookedSlots', []).some(clash);
   if (taken) return { state: 'no', text: 'Waktu ini sudah terisi booking lain. Coba waktu atau tanggal lain.' };
   return { state: 'ok', text: 'Belum ada booking terkonfirmasi di waktu ini. Ketersediaan final dikonfirmasi admin.' };
 }
@@ -95,6 +96,7 @@ form.addEventListener('submit', e => {
     status: 'menunggu', adminNote: ''
   };
   Store.upsert('bookings', booking);
+  if (Cloud.on) Cloud.createBooking(booking).catch(() => toast('Koneksi ke server bermasalah. Hubungi admin lewat WhatsApp dengan kode booking.'));
   showDone(booking);
 });
 
@@ -113,13 +115,21 @@ function showDone(b) {
 $('dClose').addEventListener('click', () => { $('bDone').hidden = true; document.body.classList.remove('no-scroll'); form.reset(); Object.keys(cart).forEach(k => delete cart[k]); browser.refresh(); fbBox.hidden = true; update(); window.scrollTo({ top: 0 }); });
 
 // ----- Cek status -----
-$('trackForm').addEventListener('submit', e => {
+$('trackForm').addEventListener('submit', async e => {
   e.preventDefault();
   const out = $('trackResult');
-  const b = Store.find('bookings', $('trackCode').value);
+  let b = Store.find('bookings', $('trackCode').value);
+  if (Cloud.on) { try { b = (await Cloud.trackBooking($('trackCode').value.trim().toUpperCase())) || b; } catch { /* pakai data lokal */ } }
   out.hidden = false;
   if (!b) { out.textContent = 'Kode tidak ditemukan di perangkat ini. Pastikan kode benar, atau hubungi admin.'; return; }
   out.innerHTML = `<b>${STATUS_LABEL[b.status]}</b><br>${fmtDate(b.date)} · ${escapeHTML(b.slot)}${b.adminNote ? `<br><em>Catatan admin: ${escapeHTML(b.adminNote)}</em>` : ''}`;
 });
+
+// Bila tersambung ke server: ambil tanggal yang ditutup & slot yang sudah terkonfirmasi.
+if (Cloud.on) {
+  Promise.all([Cloud.blockedDates(), Cloud.bookedSlots()]).then(([blocked, booked]) => {
+    Store.set('blockedDates', blocked || []); Store.set('bookedSlots', booked || []); update();
+  }).catch(() => {});
+}
 
 update();
